@@ -1,6 +1,10 @@
 
 #include <PS2Keyboard.h>
 
+uint8_t buf[8] = { 
+  0 }; 	/* Keyboard report buffer */
+  
+
 const int DataPin = 2;
 const int IRQpin =  3;
 const int ledPin = 13;
@@ -13,7 +17,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
   
-  Serial.println("Keyboard Test:");
+  //Serial.println("Keyboard Test:");
 }
 
 void loop() {
@@ -21,13 +25,18 @@ void loop() {
   if (keyboard.available()) {
     
     // read the next key  
-    char c = keyboard.read();
+    //char c = keyboard.read();
     
     digitalWrite(ledPin, HIGH);
     delay(20); 
     digitalWrite(ledPin, LOW);
     
-    // check for some of the special keys
+    buf[2] = 0x0F;
+    
+    Serial.write(buf, 8);
+    //releaseKey();
+    /*
+    // check for some of the special key
     if (c == PS2_ENTER) {
       
       Serial.println();
@@ -50,9 +59,19 @@ void loop() {
     } else if (c == PS2_DELETE) {
       Serial.print("[Del]");
     } else {
-      
-      // otherwise, just print all normal characters
-      Serial.print(c);
-    }
+    */
+    
+    // otherwise, just print all normal characters
+    //Serial.print(c);
+    
   }
+  
+  
+}
+
+void releaseKey() 
+{
+  buf[0] = 0;
+  buf[2] = 0;
+  Serial.write(buf, 8);	// Release key  
 }
