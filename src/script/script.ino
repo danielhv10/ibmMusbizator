@@ -1,4 +1,5 @@
 #include <PS2Keyboard.h>
+#include "usbHIDCharacters.h"
 
 uint8_t buf[8] = { 
   0 }; 	/* Keyboard report buffer */
