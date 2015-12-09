@@ -1,4 +1,3 @@
-
 #include <PS2Keyboard.h>
 
 uint8_t buf[8] = { 
@@ -25,7 +24,7 @@ void loop() {
   if (keyboard.available()) {
     
     // read the next key  
-    //char c = keyboard.read();
+    char c = keyboard.read();
     
     digitalWrite(ledPin, HIGH);
     delay(20); 
@@ -34,7 +33,7 @@ void loop() {
     buf[2] = 0x0F;
     
     Serial.write(buf, 8);
-    //releaseKey();
+    releaseKey();
     /*
     // check for some of the special key
     if (c == PS2_ENTER) {
@@ -65,8 +64,6 @@ void loop() {
     //Serial.print(c);
     
   }
-  
-  
 }
 
 void releaseKey() 
