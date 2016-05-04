@@ -6,6 +6,7 @@
 uint8_t buf[8] = { 
   0 }; 	/* Keyboard report buffer */
   
+uint8_t  keyboardInput[2];
 
 const int DataPin = 2;
 const int IRQpin =  3;
@@ -18,56 +19,45 @@ void setup() {
   keyboard.begin(DataPin, IRQpin);
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
-  
+
   //Serial.println("Keyboard Test:");
 }
 
 void loop() {
     
   if (keyboard.available()) {
-    
-    // read the next key  
-    char c = keyboard.read();
-    
-    digitalWrite(ledPin, HIGH);
-    delay(20); 
-    digitalWrite(ledPin, LOW);
-    
-    buf[2] = 0x0F;
-    
-    Serial.write(buf, 8);
-    releaseKey();
-    /*
-    // check for some of the special key
-    if (c == PS2_ENTER) {
-      
-      Serial.println();
-    } else if (c == PS2_TAB) {
-      Serial.print("[Tab]");
-    } else if (c == PS2_ESC) {
-      Serial.print("[ESC]");
-    } else if (c == PS2_PAGEDOWN) {
-      Serial.print("[PgDn]");
-    } else if (c == PS2_PAGEUP) {
-      Serial.print("[PgUp]");
-    } else if (c == PS2_LEFTARROW) {
-      Serial.print("[Left]");
-    } else if (c == PS2_RIGHTARROW) {
-      Serial.print("[Right]");
-    } else if (c == PS2_UPARROW) {
-      Serial.print("[Up]");
-    } else if (c == PS2_DOWNARROW) {
-      Serial.print("[Down]");
-    } else if (c == PS2_DELETE) {
-      Serial.print("[Del]");
-    } else {
-    */
-    
-    // otherwise, just print all normal characters
-    //Serial.print(c);
+      digitalWrite(ledPin, HIGH);
+      delay(20); 
+      digitalWrite(ledPin, LOW);
+      keyboard.read(keyboardInput);// read the next key  9a  
+      writeBuffer(keyboardInput[0], keyboardInput[1]);
+      releaseKey();
+      keyboard.reset();
+        
     
   }
 }
+
+ void keyCommand(uint8_t modifiers, uint8_t keycode1) { // modified from the bluefruit tutorial, defaults values fail to compile in the Arduino IDE 
+    // only interested in two key commands for now anyway
+    //Serial.write(0xFD);       // our command
+    Serial.write(modifiers);  // modifier!
+    Serial.write((byte)0x00); // 0x00
+    Serial.write(keycode1);   // key code #1
+    Serial.write((byte)0x00); // key code #2
+    Serial.write((byte)0x00); // key code #3
+    Serial.write((byte)0x00); // key code #4
+    Serial.write((byte)0x00); // key code #5
+    Serial.write((byte)0x00); // key code #6
+  }
+
+
+void writeBuffer(uint8_t modifiers, uint8_t keycode1){
+  buf[0] = modifiers;
+  buf[2] = keycode1;
+  Serial.write(buf, 8);
+}
+
 
 void releaseKey() 
 {
@@ -75,3 +65,4 @@ void releaseKey()
   buf[2] = 0;
   Serial.write(buf, 8);	// Release key  
 }
+
