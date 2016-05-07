@@ -1,3 +1,4 @@
+
 /*
   PS2Keyboard.cpp - PS2Keyboard library
   Copyright (c) 2007 Free Software Foundation.  All right reserved.
@@ -140,8 +141,7 @@ const PROGMEM  uint8_t keymap_ES[PS2_KEYMAP_SIZE] = {
 #define SHIFT_R   0x08
 #define ALTGR     0x10
 
-static int get_iso8859_code(uint8_t * c)
-{
+static int get_iso8859_code(uint8_t * c){
 	static uint8_t state=0;
 	uint8_t s;
 
@@ -217,13 +217,12 @@ static int get_iso8859_code(uint8_t * c)
 			}
 			state &= ~(BREAK | MODIFIER);
 			//if (c) return 0;
-		}
 	}
-}
+}}
 
-bool PS2Keyboard::available() {
+bool PS2Keyboard::available(){
 	if (CharBuffer[1] || UTF8next[1]) return true;
-		get_iso8859_code(CharBuffer);
+	get_iso8859_code(CharBuffer);
 	if (CharBuffer[1]) return true;
 	return false;
 }
@@ -339,9 +338,9 @@ void PS2Keyboard::begin(uint8_t data_pin, uint8_t irq_pin, const uint8_t * map )
   }
 #endif
 
-  head = 0;
-  tail = 0;
-  if (irq_num < 255) {
-    attachInterrupt(irq_num, ps2interrupt, FALLING);
-  }
-}
+	  head = 0;
+	  tail = 0;
+	  if (irq_num < 255) {
+		attachInterrupt(irq_num, ps2interrupt, FALLING);
+	  }
+	}
