@@ -140,6 +140,7 @@ const PROGMEM  uint8_t keymap_ES[PS2_KEYMAP_SIZE] = {
 #define SHIFT_L   0x04
 #define SHIFT_R   0x08
 #define ALTGR     0x10
+#define CTRL_L    0X20
 
 static int get_iso8859_code(uint8_t * c){
 	static uint8_t state=0;
@@ -158,9 +159,10 @@ static int get_iso8859_code(uint8_t * c){
 					state &= ~SHIFT_L;
 				} else if (s == 0x59) {
 					state &= ~SHIFT_R;
-				} else if (s == 0x11 /*&& (state & MODIFIER)*/) {
+				} else if (s == 0x11) {
 					state &= ~ALTGR;
-
+				} else if (s == 0x14){
+					state &= ~CTRL_L;
 				}
 				// CTRL, ALT & WIN keys could be added
 				// but is that really worth the overhead?
@@ -170,11 +172,18 @@ static int get_iso8859_code(uint8_t * c){
 			if (s == 0x12) {
 				state |= SHIFT_L;
 				continue;
-			} else if (s == 0x59) {
+			}
+			else if (s == 0x59) {
 				state |= SHIFT_R;
 				continue;
-			} else if (s == 0x11 && (state & MODIFIER)) {
+			}
+			else if (s == 0x11 ) {
 				state |= ALTGR;
+				continue;
+			}
+			else if (s == 0x14){
+				state |= CTRL_L;
+				continue;
 			}
 
 			if (state & MODIFIER) {
@@ -195,20 +204,31 @@ static int get_iso8859_code(uint8_t * c){
 				  default: break;
 				}
 			} else if ((state & ALTGR)) {
-				if (s < PS2_KEYMAP_SIZE){
+				if (s < PS2_KEYMAP_SIZE) {
 					c[0] = MODIFIER_ALT_RIGHT;
 					c[1] = pgm_read_byte(keymap + s);
 					break;
 				}
+			}
 
-			} else if (state & (SHIFT_L | SHIFT_R)) {
+
+			else if (state & CTRL_L){
 				if (s < PS2_KEYMAP_SIZE){
+					c[0] = MODIFIER_CONTROL_LEFT;
+					c[1] = pgm_read_byte(keymap + s);
+					break;
+				}
+			}
+
+			else if (state & (SHIFT_L | SHIFT_R)) {
+				if (s < PS2_KEYMAP_SIZE) {
 					c[0] = MODIFIER_SHIFT_LEFT;
 					c[1] = pgm_read_byte(keymap + s);
 					break;
 				}
+			}
 
-			} else {
+			else {
 				if (s < PS2_KEYMAP_SIZE){
 					c[1] = pgm_read_byte(keymap + s);
 					break;
@@ -216,14 +236,13 @@ static int get_iso8859_code(uint8_t * c){
 
 			}
 			state &= ~(BREAK | MODIFIER);
-			//if (c) return 0;
 	}
 }}
 
 bool PS2Keyboard::available(){
-	if (CharBuffer[1] || UTF8next[1]) return true;
+	if (CharBuffer[1] || CharBuffer[0] || UTF8next[1]) return true;
 	get_iso8859_code(CharBuffer);
-	if (CharBuffer[1]) return true;
+	if (CharBuffer[1] || CharBuffer[0]) return true;
 	return false;
 }
 
