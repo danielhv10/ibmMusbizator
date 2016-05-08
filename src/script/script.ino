@@ -1,12 +1,18 @@
 #include <PS2Keyboard.h>
+#include "usbHIDCharacters.h"
+
+
 
 uint8_t buf[8] = { 
   0 }; 	/* Keyboard report buffer */
   
+uint8_t  keyboardInput[2];
+uint8_t  lastkeyboardPressed;
 
 const int DataPin = 2;
 const int IRQpin =  3;
 const int ledPin = 13;
+const int ledPinPressed = 12;
 
 PS2Keyboard keyboard;
 
@@ -15,56 +21,48 @@ void setup() {
   keyboard.begin(DataPin, IRQpin);
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
-  
+  pinMode(ledPinPressed, OUTPUT);
+
   //Serial.println("Keyboard Test:");
 }
 
 void loop() {
     
   if (keyboard.available()) {
-    
-    // read the next key  
-    char c = keyboard.read();
-    
-    digitalWrite(ledPin, HIGH);
-    delay(20); 
-    digitalWrite(ledPin, LOW);
-    
-    buf[2] = 0x0F;
-    
-    Serial.write(buf, 8);
-    releaseKey();
-    /*
-    // check for some of the special key
-    if (c == PS2_ENTER) {
+      digitalWrite(ledPin, HIGH);
+      digitalWrite(ledPin, LOW);
+      keyboard.read(keyboardInput);// read the next key  9a  
+      writeBuffer(keyboardInput[0], keyboardInput[1]);
+      lastkeyboardPressed = keyboardInput[1];
+      delay(94);
+      while(keyboard.available()){
+        writeBuffer(keyboardInput[0], keyboardInput[1]);
+        digitalWrite(ledPinPressed, HIGH);
+                
+        keyboard.read(keyboardInput);
+        
+        if(keyboardInput[1] == lastkeyboardPressed){
+          delay(94);  
+          continue;
+        }
+        else{
+          writeBuffer(keyboardInput[0], keyboardInput[1]);
+          break;
+        }  
+      } 
+     digitalWrite(ledPinPressed, LOW); 
+     digitalWrite(ledPin, LOW); 
+      releaseKey();
       
-      Serial.println();
-    } else if (c == PS2_TAB) {
-      Serial.print("[Tab]");
-    } else if (c == PS2_ESC) {
-      Serial.print("[ESC]");
-    } else if (c == PS2_PAGEDOWN) {
-      Serial.print("[PgDn]");
-    } else if (c == PS2_PAGEUP) {
-      Serial.print("[PgUp]");
-    } else if (c == PS2_LEFTARROW) {
-      Serial.print("[Left]");
-    } else if (c == PS2_RIGHTARROW) {
-      Serial.print("[Right]");
-    } else if (c == PS2_UPARROW) {
-      Serial.print("[Up]");
-    } else if (c == PS2_DOWNARROW) {
-      Serial.print("[Down]");
-    } else if (c == PS2_DELETE) {
-      Serial.print("[Del]");
-    } else {
-    */
-    
-    // otherwise, just print all normal characters
-    //Serial.print(c);
-    
   }
 }
+
+void writeBuffer(uint8_t modifiers, uint8_t keycode1){
+  buf[0] = modifiers;
+  buf[2] = keycode1;
+  Serial.write(buf, 8);
+}
+
 
 void releaseKey() 
 {
@@ -72,3 +70,4 @@ void releaseKey()
   buf[2] = 0;
   Serial.write(buf, 8);	// Release key  
 }
+
