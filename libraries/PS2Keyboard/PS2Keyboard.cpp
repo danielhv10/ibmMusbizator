@@ -141,6 +141,7 @@ const PROGMEM  uint8_t keymap_ES[PS2_KEYMAP_SIZE] = {
 #define SHIFT_R   0x08
 #define ALTGR     0x10
 #define CTRL_L    0X20
+#define ALT       0X40
 
 static int get_iso8859_code(uint8_t * c){
 	static uint8_t state=0;
@@ -163,6 +164,8 @@ static int get_iso8859_code(uint8_t * c){
 					state &= ~ALTGR;
 				} else if (s == 0x14){
 					state &= ~CTRL_L;
+				} else if (s == 0x11){
+					state &= ~ALT;
 				}
 				// CTRL, ALT & WIN keys could be added
 				// but is that really worth the overhead?
@@ -183,6 +186,10 @@ static int get_iso8859_code(uint8_t * c){
 			}
 			else if (s == 0x14){
 				state |= CTRL_L;
+				continue;
+			}
+			else if (s == 0x11){
+				state &= ~ALT;
 				continue;
 			}
 
@@ -223,6 +230,14 @@ static int get_iso8859_code(uint8_t * c){
 			else if (state & (SHIFT_L | SHIFT_R)) {
 				if (s < PS2_KEYMAP_SIZE) {
 					c[0] = MODIFIER_SHIFT_LEFT;
+					c[1] = pgm_read_byte(keymap + s);
+					break;
+				}
+			}
+
+			else if (state & ALT) {
+				if (s < PS2_KEYMAP_SIZE) {
+					c[0] = MODIFIER_ALT_LEFT;
 					c[1] = pgm_read_byte(keymap + s);
 					break;
 				}
